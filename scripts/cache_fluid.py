@@ -1,5 +1,5 @@
 
-import bpy, sys, os
+import bpy, sys, os, time
 
 # --- simple arg parsing after `--`
 def parse_args(argv):
@@ -21,12 +21,58 @@ if "--" in sys.argv:
 else:
     args = {"out": None, "start": None, "end": None}
 
-# 1) Ensure the .blend file is saved; mantaflow baking requires it
+# 1) Ensure the .blend file is saved
 if not bpy.data.filepath:
-    raise RuntimeError("Blend file must be saved before baking (required by fluid cache).")
+    raise RuntimeError("Blend file must be saved before baking.")
+
+# ----- PROGRESS HANDLER SETUP -----
+start_time = None
+last_frame = None
+
+def progress_handler(scene):
+    global start_time, last_frame
+
+    f = scene.frame_current
+    fs = scene.frame_start
+    fe = scene.frame_end
+
+    if start_time is None:
+        start_time = time.time()
+
+    # Avoid repeated prints on same frame
+    if last_frame == f:
+        return
+    last_frame = f
+
+    total = fe - fs + 1
+    done = f - fs + 1
+    pct = (done / total) * 100
+
+    elapsed = time.time() - start_time
+    if done > 0:
+        est_total = elapsed * (total / done)
+        eta = est_total - elapsed
+    else:
+        eta = 0
+
+    print(f"[Bake Progress] Frame {f}/{fe}  ({pct:5.1f}%)  ETA: {eta:6.1f}s")
+
+# Register handler
+if progress_handler not in bpy.app.handlers.frame_change_post:
+    bpy.app.handlers.frame_change_post.append(progress_handler)
 
 # Defaults / paths
 cache_dir = args["out"] or os.path.join(os.path.dirname(bpy.data.filepath), "cache_fluid")
+
+# If exists, remove & recreate
+if os.path.exists(cache_dir):
+    try:
+        os.rmdir(cache_dir)
+    except:
+        # rmdir fails if not empty; clear manually
+        import shutil
+        shutil.rmtree(cache_dir)
+
 os.makedirs(cache_dir, exist_ok=True)
 
 scene = bpy.context.scene
@@ -40,28 +86,25 @@ for obj in bpy.data.objects:
         if mod.type == 'FLUID' and getattr(mod, "fluid_type", None) == 'DOMAIN':
             ds = mod.domain_settings
             if ds.domain_type == 'GAS':
-                # Set cache directory, frame range and format
                 ds.cache_directory = cache_dir
                 ds.resolution_max = 512
                 ds.cache_frame_start = scene.frame_start
                 ds.cache_frame_end = scene.frame_end
-                ds.cache_type = 'ALL'                 # single 'Bake All' entry point
-                ds.cache_data_format = 'OPENVDB'      # write OpenVDB grids
+                ds.cache_type = 'ALL'
+                ds.cache_data_format = 'OPENVDB'
                 domains.append((obj, mod))
 
 if not domains:
     print("No GAS fluid domains found; nothing to bake.")
     sys.exit(0)
 
-# 3) Optionally free previous cache by switching to a new empty folder
-# (Usually not necessary if you wrote to a fresh cache_dir.)
-
-# 4) Bake once for the scene or per domain (both are fine in -b)
-# Per-domain bake (safe in headless runs)
+# 4) Bake per domain
 for obj, mod in domains:
     bpy.context.view_layer.objects.active = obj
-    print(f"Baking domain on: {obj.name} → {ds.cache_directory}")
+    print(f"Baking domain on: {obj.name} → {mod.domain_settings.cache_directory}")
+    start_time = None  # reset timers for each domain
+    last_frame = None
     result = bpy.ops.fluid.bake_all()
-    print("Result:", result)
+    print("Bake result:", result)
 
 print("Done. VDBs are in:", cache_dir, "/data and possibly /noise.")

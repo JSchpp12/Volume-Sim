@@ -1,0 +1,12 @@
+{
+    "image": "linuxserver/blender:5.0.1",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "donjayamanne.python-extension-pack",
+                "njpwerner.autodocstring"
+            ]
+        }
+    }
+}

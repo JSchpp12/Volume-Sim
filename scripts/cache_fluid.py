@@ -1,5 +1,5 @@
 
-import bpy, sys, os, time
+import bpy, sys, os, time, shutil
 
 # --- simple arg parsing after `--`
 def parse_args(argv):
@@ -25,54 +25,25 @@ else:
 if not bpy.data.filepath:
     raise RuntimeError("Blend file must be saved before baking.")
 
-# ----- PROGRESS HANDLER SETUP -----
-start_time = None
-last_frame = None
-
-def progress_handler(scene):
-    global start_time, last_frame
-
-    f = scene.frame_current
-    fs = scene.frame_start
-    fe = scene.frame_end
-
-    if start_time is None:
-        start_time = time.time()
-
-    # Avoid repeated prints on same frame
-    if last_frame == f:
-        return
-    last_frame = f
-
-    total = fe - fs + 1
-    done = f - fs + 1
-    pct = (done / total) * 100
-
-    elapsed = time.time() - start_time
-    if done > 0:
-        est_total = elapsed * (total / done)
-        eta = est_total - elapsed
-    else:
-        eta = 0
-
-    print(f"[Bake Progress] Frame {f}/{fe}  ({pct:5.1f}%)  ETA: {eta:6.1f}s")
-
-# Register handler
-if progress_handler not in bpy.app.handlers.frame_change_post:
-    bpy.app.handlers.frame_change_post.append(progress_handler)
-
 # Defaults / paths
 cache_dir = args["out"] or os.path.join(os.path.dirname(bpy.data.filepath), "cache_fluid")
 
 # If exists, remove & recreate
 if os.path.exists(cache_dir):
     try:
-        os.rmdir(cache_dir)
-    except:
-        # rmdir fails if not empty; clear manually
-        import shutil
-        shutil.rmtree(cache_dir)
-
+        parent_dir = os.path.abspath(os.path.join(cache_dir, os.path.pardir))
+        archive_dir = os.path.join(parent_dir, "archive_cache")
+        if (os.path.exists(archive_dir)):
+            shutil.rmtree(archive_dir)
+            
+        shutil.move(cache_dir, archive_dir)
+    except FileNotFoundError:
+        print("File not found")
+        exit
+    except Exception as e:
+        print(f"An unknown error occurred: {e}")
+        exit
+        
 os.makedirs(cache_dir, exist_ok=True)
 
 scene = bpy.context.scene

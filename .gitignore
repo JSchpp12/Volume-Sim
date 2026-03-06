@@ -1,3 +1,5 @@
 waveletNoiseTile.bin
 working/*
 out/*
+vcpkg_installed/*
+build/*

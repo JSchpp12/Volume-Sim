@@ -1,0 +1,9 @@
+{
+    "dependencies": [
+        "zstd", 
+        {
+            "name": "openvdb", 
+            "features": ["nanovdb", "nanovdb-tools"]
+        }
+    ]
+}

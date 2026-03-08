@@ -10,8 +10,6 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description="Bake a Blender fluid simulation to OpenVDB")
     parser.add_argument("--out",        type=str, default=None,  help="Output cache directory")
-    parser.add_argument("--start",      type=int, default=None,  help="Start frame")
-    parser.add_argument("--end",        type=int, default=None,  help="End frame")
     parser.add_argument("--resolution", type=int, default=512,   help="Fluid domain resolution divisions (default: 512)")
     return parser.parse_args(argv)
 
@@ -43,10 +41,6 @@ if os.path.exists(cache_dir):
 os.makedirs(cache_dir, exist_ok=True)
 
 scene = bpy.context.scene
-if args.start is not None: scene.frame_start = args.start
-if args.end   is not None: scene.frame_end   = args.end
-
-print(f"Baking frames {scene.frame_start} to {scene.frame_end} at resolution {args.resolution}")
 
 # 2) Find fluid GAS domains and set cache settings
 domains = []
@@ -57,8 +51,6 @@ for obj in bpy.data.objects:
             if ds.domain_type == 'GAS':
                 ds.cache_directory  = cache_dir
                 ds.resolution_max   = args.resolution
-                ds.cache_frame_start = scene.frame_start
-                ds.cache_frame_end   = scene.frame_end
                 ds.cache_type        = 'ALL'
                 ds.cache_data_format = 'OPENVDB'
                 domains.append((obj, mod))

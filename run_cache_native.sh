@@ -25,5 +25,6 @@ END_FRAME=250
 
 ./blender -b "${BLEND_FILE}" --python "${PY_SCRIPT}" -- \
         --out "${OUT_DIR}" \
-        --start "${START_FRAME}"
-        --stop "${END_FRAME}"
+        --start "${START_FRAME}" \
+        --stop "${END_FRAME}" \
+        --resolution 512

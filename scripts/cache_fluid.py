@@ -22,7 +22,7 @@ if not bpy.data.filepath:
     raise RuntimeError("Blend file must be saved before baking.")
 
 # Defaults / paths
-cache_dir = args["out"] or os.path.join(os.path.dirname(bpy.data.filepath), "cache_fluid")
+cache_dir = args.out or os.path.join(os.path.dirname(bpy.data.filepath), "cache_fluid")
 
 # If exists, remove & recreate
 if os.path.exists(cache_dir):

@@ -10,10 +10,12 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description="Bake a Blender fluid simulation to OpenVDB")
     parser.add_argument("--out",        type=str, default=None,  help="Output cache directory")
-    parser.add_argument("--resolution", type=int, default=512,   help="Fluid domain resolution divisions (default: 512)")
+    parser.add_argument("--resolution", type=int,  help="Fluid domain resolution divisions (default: 512)")
     return parser.parse_args(argv)
 
 args = parse_args()
+if args.resolution is None:
+    raise RuntimeError("Resolution must be defined")
 
 # 1) Ensure the .blend file is saved
 if not bpy.data.filepath:
@@ -21,25 +23,7 @@ if not bpy.data.filepath:
 
 # Defaults / paths
 cache_dir = args.out or os.path.join(os.path.dirname(bpy.data.filepath), "cache_fluid")
-
-# If exists, remove & recreate
-if os.path.exists(cache_dir):
-    try:
-        parent_dir = os.path.abspath(os.path.join(cache_dir, os.path.pardir))
-        archive_dir = os.path.join(parent_dir, "archive_cache")
-        if (os.path.exists(archive_dir)):
-            shutil.rmtree(archive_dir)
-            
-        shutil.move(cache_dir, archive_dir)
-    except FileNotFoundError:
-        print("File not found")
-        exit
-    except Exception as e:
-        print(f"An unknown error occurred: {e}")
-        exit
-        
 os.makedirs(cache_dir, exist_ok=True)
-
 scene = bpy.context.scene
 
 # 2) Find fluid GAS domains and set cache settings

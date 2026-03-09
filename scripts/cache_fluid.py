@@ -35,7 +35,7 @@ for obj in bpy.data.objects:
             if ds.domain_type == 'GAS':
                 ds.cache_directory  = cache_dir
                 ds.resolution_max   = args.resolution
-                ds.cache_type        = 'ALL'
+                ds.cache_type        = 'MODULAR'
                 ds.cache_data_format = 'OPENVDB'
                 domains.append((obj, mod))
 
@@ -49,7 +49,7 @@ for obj, mod in domains:
     print(f"Baking domain on: {obj.name} → {mod.domain_settings.cache_directory}")
     start_time = None  # reset timers for each domain
     last_frame = None
-    result = bpy.ops.fluid.bake_all()
+    result = bpy.ops.fluid.bake_data()
     print("Bake result:", result)
 
 print("Done. VDBs are in:", cache_dir, "/data and possibly /noise.")

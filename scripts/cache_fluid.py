@@ -33,10 +33,13 @@ for obj in bpy.data.objects:
         if mod.type == 'FLUID' and getattr(mod, "fluid_type", None) == 'DOMAIN':
             ds = mod.domain_settings
             if ds.domain_type == 'GAS':
+                ds.cache_frame_start = scene.frame_start
+                ds.cache_frame_end   = scene.frame_end
                 ds.cache_directory  = cache_dir
                 ds.resolution_max   = args.resolution
                 ds.cache_type        = 'MODULAR'
                 ds.cache_data_format = 'OPENVDB'
+                ds.cache_resumable = True
                 domains.append((obj, mod))
 
 if not domains:

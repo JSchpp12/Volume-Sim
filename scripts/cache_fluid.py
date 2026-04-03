@@ -40,7 +40,7 @@ for obj in bpy.data.objects:
                 ds.cache_type        = 'ALL'
                 ds.cache_data_format = 'OPENVDB'
                 ds.cache_resumable = True
-                ds.openvdb_data_depth = 32
+                ds.openvdb_data_depth = '32'
                 ds.openvdb_cache_compress_type = 'ZIP'
                 domains.append((obj, mod))
 

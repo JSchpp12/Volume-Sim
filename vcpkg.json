@@ -1,6 +1,6 @@
 {
     "dependencies": [
-        "zstd", 
+        "zstd",
         {
             "name": "openvdb", 
             "features": ["nanovdb", "nanovdb-tools"]

@@ -15,7 +15,7 @@
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets",
-                "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
             }
         },
         {
